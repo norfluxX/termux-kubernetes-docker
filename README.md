@@ -38,7 +38,7 @@ Recommended 2–4 CPU cores and 4GB RAM for QEMU VM
 Install QEMU in Termux
 
 pkg update && pkg upgrade -y
-pkg install qemu-system-x86_64 wget tar -y
+pkg install qemu-system-x86-64 wget tar -y
 
 
 ---
@@ -56,7 +56,7 @@ Create Alpine Disk and Start VM
 1. Create a disk image:
 
 
-
+pkg install qemu-utils
 qemu-img create -f qcow2 alpine.qcow2 15G
 
 2. Create a start script bootup-alpine.sh:
@@ -65,11 +65,12 @@ qemu-img create -f qcow2 alpine.qcow2 15G
 
 #!/data/data/com.termux/files/usr/bin/bash
 qemu-system-x86_64 \
-  -smp 2 -m 4096 \
+  -smp 2 \
+  -m 4096 \
   -drive file=$HOME/alpine/alpine.qcow2,if=virtio \
-  -netdev user,id=n1,hostfwd=tcp::2222-:22 \
-  -device virtio-net,netdev=n1 \
   -cdrom $HOME/alpine/alpine-virt-3.14.0-x86_64.iso \
+  -netdev user,id=net0 \
+  -device virtio-net-pci,netdev=net0 \
   -boot d \
   -nographic
 
@@ -114,6 +115,12 @@ Install Docker
 1. Update Alpine packages:
 
 
+ip link set eth0 up
+udhcpc -i eth0
+cat << EOF >  /etc/apk/repositories
+> https://dl-cdn.alpinelinux.org/alpine/v3.14/main
+> https://dl-cdn.alpinelinux.org/alpine/v3.14/community
+> EOF
 
 apk update && apk upgrade -y
 
